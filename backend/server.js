@@ -176,9 +176,9 @@ app.use((err, req, res, next) => {
 });
 
 // Start server (FORCED PORT 5000)
-const server = app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+// const server = app.listen(PORT, () => {
+//     console.log(`🚀 Server running on port ${PORT}`);
+// });
 
 // Graceful shutdown
 const shutdown = () => {
