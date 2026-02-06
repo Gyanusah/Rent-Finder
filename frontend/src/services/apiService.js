@@ -68,14 +68,12 @@ export const authAPI = {
 export const getImageUrl = (imagePath) => {
     if (!imagePath) return "/placeholder.svg";
     if (imagePath.startsWith('http')) return imagePath;
-    
-    // For production (HTTPS frontend), use relative path or handle appropriately
+
+    // For production (HTTPS frontend), use the backend URL
     if (window.location.protocol === 'https:') {
-        // In production, you might need to use a CDN or different approach
-        // For now, return the image path and let the frontend handle it
-        return imagePath;
+        return `${API_BASE_URL.replace('/api', '')}${imagePath}`;
     }
-    
+
     // For local development (HTTP), use the full URL
     return `${API_BASE_URL.replace('/api', '')}${imagePath}`;
 };

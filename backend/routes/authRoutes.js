@@ -4,6 +4,15 @@ const { register, login, getMe, updateProfile, getUserById, getAllUsers } = requ
 // const { auth, authorize } = require('../middleware/auth');
 const { auth, authorize } = require('../middleware/auth');
 
+// Debug route to test server
+router.get('/debug', (req, res) => {
+    res.status(200).json({
+        message: 'Auth routes working',
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV
+    });
+});
+
 // Public routes
 router.post('/register', register);
 router.post('/login', login);

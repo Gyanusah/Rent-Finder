@@ -76,14 +76,14 @@ exports.login = async (req, res) => {
         const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
 
         if (!user) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(401).json({ message: 'Email not found. Please register first.' });
         }
 
         // Check if password matches
         const isMatch = await user.matchPassword(password);
 
         if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(401).json({ message: 'Incorrect password. Please try again.' });
         }
 
         const token = generateToken(user);
