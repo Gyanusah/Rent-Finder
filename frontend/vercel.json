@@ -1,0 +1,31 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "YOUR_DEPLOYED_BACKEND_URL/api/$1",
+      "changeOrigin": true
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": ".*text/html.*"
+        }
+      ]
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ]
+}
