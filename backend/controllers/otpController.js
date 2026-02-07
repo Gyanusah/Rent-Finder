@@ -1,11 +1,11 @@
-const OTP = require('../models/OTP');
-const { generateOTP, sendEmailOTP } = require('../services/emailService');
-const { generateOTP: generateSMSOTP, sendSMSOTP } = require('../services/smsService');
+import OTPModel from "../models/OTP.js";
+import { generateOTP, sendEmailOTP as sendEmail } from "../services/emailService.js";
+import { generateOTP as generateSMSOTP, sendSMSOTP } from "../services/smsService.js";
 
 // @route   POST /api/otp/send/email
 // @desc    Send OTP to email
 // @access  Public
-exports.sendEmailOTP = async (req, res) => {
+export const sendEmailOTP = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -17,10 +17,10 @@ exports.sendEmailOTP = async (req, res) => {
     const otp = generateOTP();
 
     // Delete any existing OTP for this email
-    await OTP.deleteMany({ email, type: 'email' });
+    await OTPModel.deleteMany({ email, type: 'email' });
 
     // Save new OTP
-    const newOTP = new OTP({
+    const newOTP = new OTPModel({
       email,
       otp,
       type: 'email',
@@ -29,18 +29,15 @@ exports.sendEmailOTP = async (req, res) => {
     await newOTP.save();
 
     // Send OTP via email
-    const emailResult = await sendEmailOTP(email, otp);
+    const emailResult = await sendEmail(email, otp);
 
     if (!emailResult.success) {
-      return res.status(500).json({ message: 'Failed to send OTP email' });
+      return res.status(500).json({ message: 'Failed to send email OTP' });
     }
 
     res.status(200).json({
       success: true,
       message: 'OTP sent to your email',
-      // Return OTP for test service
-      otp: emailResult.otp || undefined,
-      previewUrl: emailResult.previewUrl || undefined,
     });
   } catch (error) {
     console.error('Error sending email OTP:', error);
@@ -51,7 +48,7 @@ exports.sendEmailOTP = async (req, res) => {
 // @route   POST /api/otp/send/phone
 // @desc    Send OTP to phone
 // @access  Public
-exports.sendPhoneOTP = async (req, res) => {
+export const sendPhoneOTP = async (req, res) => {
   try {
     const { phone } = req.body;
 
@@ -63,10 +60,10 @@ exports.sendPhoneOTP = async (req, res) => {
     const otp = generateSMSOTP();
 
     // Delete any existing OTP for this phone
-    await OTP.deleteMany({ phone, type: 'phone' });
+    await OTPModel.deleteMany({ phone, type: 'phone' });
 
     // Save new OTP
-    const newOTP = new OTP({
+    const newOTP = new OTPModel({
       phone,
       otp,
       type: 'phone',
@@ -78,7 +75,7 @@ exports.sendPhoneOTP = async (req, res) => {
     const smsResult = await sendSMSOTP(phone, otp);
 
     if (!smsResult.success) {
-      return res.status(500).json({ message: 'Failed to send OTP SMS' });
+      return res.status(500).json({ message: 'Failed to send SMS OTP' });
     }
 
     res.status(200).json({
@@ -94,7 +91,7 @@ exports.sendPhoneOTP = async (req, res) => {
 // @route   POST /api/otp/send/both
 // @desc    Send OTP to both email and phone
 // @access  Public
-exports.sendBothOTP = async (req, res) => {
+export const sendBothOTP = async (req, res) => {
   try {
     const { email, phone } = req.body;
 
@@ -105,16 +102,16 @@ exports.sendBothOTP = async (req, res) => {
     // Generate OTP
     const otp = generateOTP();
 
-    // Delete any existing OTP for this email/phone
-    await OTP.deleteMany({
+    // Delete any existing OTP for both email and phone
+    await OTPModel.deleteMany({
       $or: [
-        { email, type: 'both' },
-        { phone, type: 'both' }
+        { email, type: 'email' },
+        { phone, type: 'phone' }
       ]
     });
 
     // Save new OTP
-    const newOTP = new OTP({
+    const newOTP = new OTPModel({
       email,
       phone,
       otp,
@@ -125,8 +122,8 @@ exports.sendBothOTP = async (req, res) => {
 
     // Send OTP via email and SMS
     const [emailResult, smsResult] = await Promise.all([
-      sendEmailOTP(email, otp),
-      sendSMSOTP(phone, otp),
+      sendEmail(email, otp),
+      sendSMSOTP(phone, otp)
     ]);
 
     if (!emailResult.success || !smsResult.success) {
@@ -146,7 +143,7 @@ exports.sendBothOTP = async (req, res) => {
 // @route   POST /api/otp/verify
 // @desc    Verify OTP
 // @access  Public
-exports.verifyOTP = async (req, res) => {
+export const verifyOTP = async (req, res) => {
   try {
     const { email, phone, otp, type } = req.body;
 
@@ -161,12 +158,20 @@ exports.verifyOTP = async (req, res) => {
     // Find OTP record
     let otpRecord;
     if (email) {
-      otpRecord = await OTP.findOne({ email, otp, type: type || 'email' });
+      otpRecord = await OTPModel.findOne({ email, otp, type: type || 'email' });
     } else if (phone) {
-      otpRecord = await OTP.findOne({ phone, otp, type: type || 'phone' });
+      otpRecord = await OTPModel.findOne({ phone, otp, type: type || 'phone' });
     }
 
     if (!otpRecord) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    // Check if OTP is expired (10 minutes)
+    const createdAt = new Date(otpRecord.createdAt);
+    const expiresAt = new Date(createdAt.getTime() + 10 * 60 * 1000);
+
+    if (new Date() > expiresAt) {
       return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
 

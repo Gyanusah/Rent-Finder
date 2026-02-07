@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+import jwt from "jsonwebtoken";
 
 const auth = (req, res, next) => {
     try {
@@ -37,4 +37,4 @@ const authorize = (...roles) => (req, res, next) => {
     next();
 };
 
-module.exports = { auth, authorize };
+export { auth, authorize };

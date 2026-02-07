@@ -1,6 +1,8 @@
-require('dotenv').config();
-const connectDB = require('./config/db');
-const User = require('./models/User');
+import dotenv from "dotenv";
+dotenv.config();
+
+import connectDB from "./config/db.js";
+import User from "./models/User.js";
 
 // Simple CLI helper to parse --key=value args
 const parseArgs = () => {

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const PropertySchema = new mongoose.Schema(
     {
@@ -120,6 +120,7 @@ const PropertySchema = new mongoose.Schema(
         images: [
             {
                 url: String,
+                public_id: String,
                 uploadedAt: { type: Date, default: Date.now },
             },
         ],
@@ -158,4 +159,4 @@ PropertySchema.index({ propertyType: 1 });
 PropertySchema.index({ owner: 1 });
 PropertySchema.index({ 'availability.available': 1 });
 
-module.exports = mongoose.model('Property', PropertySchema);
+export default mongoose.model('Property', PropertySchema);

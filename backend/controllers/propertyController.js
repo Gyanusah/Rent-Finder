@@ -1,7 +1,13 @@
-// @route   GET /api/properties/owner/my-properties
-// @desc    Get all properties for the current logged-in owner
-// @access  Private
-exports.getMyProperties = async (req, res) => {
+import Property from "../models/Property.js";
+import Favorite from "../models/Favorite.js";
+import cloudinary from "../config/cloudinary.js";
+
+/**
+ * @route   GET /api/properties/owner/my-properties
+ * @desc    Get all properties for the current logged-in owner
+ * @access  Private
+ */
+export const getMyProperties = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
@@ -9,7 +15,7 @@ exports.getMyProperties = async (req, res) => {
         const properties = await Property.find({ owner: req.user.id })
             .skip(skip)
             .limit(Number(limit))
-            .populate('owner', 'name email phone');
+            .populate("owner", "name email phone");
 
         const total = await Property.countDocuments({ owner: req.user.id });
 
@@ -25,15 +31,13 @@ exports.getMyProperties = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-const Property = require('../models/Property');
-const Favorite = require('../models/Favorite');
-const fs = require('fs');
-const path = require('path');
 
-// @route   POST /api/properties
-// @desc    Create a property
-// @access  Private (owner/admin)
-exports.createProperty = async (req, res) => {
+/**
+ * @route   POST /api/properties
+ * @desc    Create a property
+ * @access  Private (owner/admin)
+ */
+export const createProperty = async (req, res) => {
     try {
         const {
             title,
@@ -62,31 +66,30 @@ exports.createProperty = async (req, res) => {
             availableFrom,
         } = req.body;
 
-        // Add uploaded images
+        // Add uploaded images (Cloudinary)
         let images = [];
         if (req.files && req.files.length > 0) {
             images = req.files.map((file) => ({
-                url: `/uploads/${file.filename}`,
+                url: file.path,           // Cloudinary URL
+                public_id: file.filename, // Cloudinary public id
                 uploadedAt: new Date(),
             }));
         }
 
-        // Helper function to parse boolean strings
         const parseBoolean = (val) => {
-            if (typeof val === 'boolean') return val;
-            if (val === 'true') return true;
-            if (val === 'false') return false;
+            if (typeof val === "boolean") return val;
+            if (val === "true") return true;
+            if (val === "false") return false;
             return !!val;
         };
 
-        // Helper function to parse JSON safely
         const parseJSON = (val) => {
             if (!val) return {};
-            if (typeof val === 'object') return val;
+            if (typeof val === "object") return val;
             try {
                 return JSON.parse(val);
             } catch (e) {
-                console.error('JSON parse error:', e, 'for value:', val);
+                console.error("JSON parse error:", e, "for value:", val);
                 return {};
             }
         };
@@ -105,7 +108,6 @@ exports.createProperty = async (req, res) => {
             maintenance: maintenance ? Number(maintenance) : 0,
             propertyType,
             roomType,
-            roomCount: roomCount ? Number(roomCount) : null,
             bathrooms: parseJSON(bathrooms),
             furnishing,
             floor: parseJSON(floor),
@@ -127,27 +129,21 @@ exports.createProperty = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: 'Property created successfully',
+            message: "Property created successfully",
             data: property,
         });
     } catch (error) {
-        // Delete uploaded files if property creation fails
-        if (req.files) {
-            req.files.forEach((file) => {
-                fs.unlink(file.path, (err) => {
-                    if (err) console.error('File error:', err);
-                });
-            });
-        }
-        console.error('Property creation error:', error);
-        res.status(400).json({ message: error.message || 'Error creating property' });
+        console.error("Property creation error:", error);
+        res.status(400).json({ message: error.message || "Error creating property" });
     }
 };
 
-// @route   GET /api/properties
-// @desc    Get all properties with search and filter
-// @access  Public
-exports.getProperties = async (req, res) => {
+/**
+ * @route   GET /api/properties
+ * @desc    Get all properties with search and filter
+ * @access  Public
+ */
+export const getProperties = async (req, res) => {
     try {
         let {
             city,
@@ -161,30 +157,19 @@ exports.getProperties = async (req, res) => {
             amenities,
             page = 1,
             limit = 12,
-            sort = '-createdAt',
+            sort = "-createdAt",
         } = req.query;
 
         // Ensure pagination values are numbers
         page = Number(page) || 1;
         limit = Number(limit) || 12;
 
-        let filter = { 'availability.available': true };
+        let filter = { "availability.available": true };
 
-        if (city) {
-            filter.city = { $regex: city, $options: 'i' };
-        }
-
-        if (area) {
-            filter.area = { $regex: area, $options: 'i' };
-        }
-
-        if (propertyType) {
-            filter.propertyType = propertyType;
-        }
-
-        if (furnishing) {
-            filter.furnishing = furnishing;
-        }
+        if (city) filter.city = { $regex: city, $options: "i" };
+        if (area) filter.area = { $regex: area, $options: "i" };
+        if (propertyType) filter.propertyType = propertyType;
+        if (furnishing) filter.furnishing = furnishing;
 
         if (minRent || maxRent) {
             filter.rent = {};
@@ -192,13 +177,11 @@ exports.getProperties = async (req, res) => {
             if (maxRent) filter.rent.$lte = Number(maxRent);
         }
 
-        if (familyAllowed !== undefined) {
-            filter.familyAllowed = familyAllowed === 'true';
-        }
+        if (familyAllowed !== undefined)
+            filter.familyAllowed = familyAllowed === "true";
 
-        if (bachelorAllowed !== undefined) {
-            filter.bachelorAllowed = bachelorAllowed === 'true';
-        }
+        if (bachelorAllowed !== undefined)
+            filter.bachelorAllowed = bachelorAllowed === "true";
 
         if (amenities) {
             const amenitiesArray = Array.isArray(amenities) ? amenities : [amenities];
@@ -212,19 +195,19 @@ exports.getProperties = async (req, res) => {
         const skip = (page - 1) * limit;
 
         // Log the filter and pagination for debugging
-        console.log('Fetching properties with filter:', JSON.stringify(filter), 'page:', page, 'limit:', limit, 'sort:', sort);
+        console.log("Fetching properties with filter:", JSON.stringify(filter), "page:", page, "limit:", limit, "sort:", sort);
 
         let properties;
         try {
             properties = await Property.find(filter)
-                .populate('owner', 'name email phone')
+                .populate("owner", "name email phone")
                 .sort(sort)
                 .skip(skip)
                 .limit(Number(limit));
         } catch (err) {
-            console.error('Error querying properties:', err);
-            const payload = { message: 'Database query error while fetching properties', error: err.message };
-            if (process.env.NODE_ENV !== 'production') {
+            console.error("Error querying properties:", err);
+            const payload = { message: "Database query error while fetching properties", error: err.message };
+            if (process.env.NODE_ENV !== "production") {
                 payload.stack = err.stack;
                 payload.filter = filter;
                 payload.page = page;
@@ -238,9 +221,9 @@ exports.getProperties = async (req, res) => {
         try {
             total = await Property.countDocuments(filter);
         } catch (err) {
-            console.error('Error counting properties:', err);
-            const payload = { message: 'Database query error while counting properties', error: err.message };
-            if (process.env.NODE_ENV !== 'production') {
+            console.error("Error counting properties:", err);
+            const payload = { message: "Database query error while counting properties", error: err.message };
+            if (process.env.NODE_ENV !== "production") {
                 payload.stack = err.stack;
                 payload.filter = filter;
                 payload.page = page;
@@ -259,32 +242,26 @@ exports.getProperties = async (req, res) => {
             data: properties,
         });
     } catch (error) {
-        console.error('Get properties error:', error);
-        const payload = { message: error.message || 'Error fetching properties' };
-        if (process.env.NODE_ENV !== 'production') {
-            payload.stack = error.stack;
-            payload.filter = typeof filter !== 'undefined' ? filter : null;
-            payload.page = typeof page !== 'undefined' ? page : null;
-            payload.limit = typeof limit !== 'undefined' ? limit : null;
-            payload.sort = typeof sort !== 'undefined' ? sort : null;
-        }
-        res.status(500).json(payload);
+        console.error("Get properties error:", error);
+        res.status(500).json({ message: error.message });
     }
 };
 
-// @route   GET /api/properties/:id
-// @desc    Get property by id
-// @access  Public
-exports.getPropertyById = async (req, res) => {
+/**
+ * @route   GET /api/properties/:id
+ * @desc    Get property by id
+ * @access  Public
+ */
+export const getPropertyById = async (req, res) => {
     try {
         const property = await Property.findByIdAndUpdate(
             req.params.id,
             { $inc: { views: 1 } },
             { new: true }
-        ).populate('owner', 'name email phone bio address');
+        ).populate("owner", "name email phone bio address");
 
         if (!property) {
-            return res.status(404).json({ message: 'Property not found' });
+            return res.status(404).json({ message: "Property not found" });
         }
 
         res.status(200).json({
@@ -296,38 +273,38 @@ exports.getPropertyById = async (req, res) => {
     }
 };
 
-// @route   PUT /api/properties/:id
-// @desc    Update property
-// @access  Private (owner of property)
-exports.updateProperty = async (req, res) => {
+/**
+ * @route   PUT /api/properties/:id
+ * @desc    Update property
+ * @access  Private (owner of property)
+ */
+export const updateProperty = async (req, res) => {
     try {
         let property = await Property.findById(req.params.id);
 
         if (!property) {
-            return res.status(404).json({ message: 'Property not found' });
+            return res.status(404).json({ message: "Property not found" });
         }
 
         // Check authorization
-        if (property.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Not authorized to update this property' });
+        if (property.owner.toString() !== req.user.id && req.user.role !== "admin") {
+            return res.status(403).json({ message: "Not authorized to update this property" });
         }
 
-        // Helper function to parse boolean strings
         const parseBoolean = (val) => {
-            if (typeof val === 'boolean') return val;
-            if (val === 'true') return true;
-            if (val === 'false') return false;
+            if (typeof val === "boolean") return val;
+            if (val === "true") return true;
+            if (val === "false") return false;
             return !!val;
         };
 
-        // Helper function to parse JSON safely
         const parseJSON = (val) => {
             if (!val) return {};
-            if (typeof val === 'object') return val;
+            if (typeof val === "object") return val;
             try {
                 return JSON.parse(val);
             } catch (e) {
-                console.error('JSON parse error:', e, 'for value:', val);
+                console.error("JSON parse error:", e, "for value:", val);
                 return {};
             }
         };
@@ -352,12 +329,14 @@ exports.updateProperty = async (req, res) => {
         if (updateData.familyAllowed !== undefined) updateData.familyAllowed = parseBoolean(updateData.familyAllowed);
         if (updateData.bachelorAllowed !== undefined) updateData.bachelorAllowed = parseBoolean(updateData.bachelorAllowed);
 
-        // Handle new images
+        // Add new images from Cloudinary
         if (req.files && req.files.length > 0) {
             const newImages = req.files.map((file) => ({
-                url: `/uploads/${file.filename}`,
+                url: file.path,
+                public_id: file.filename,
                 uploadedAt: new Date(),
             }));
+
             updateData.images = [...(property.images || []), ...newImages];
         }
 
@@ -368,59 +347,61 @@ exports.updateProperty = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Property updated successfully',
+            message: "Property updated successfully",
             data: property,
         });
     } catch (error) {
-        console.error('Property update error:', error);
-        res.status(400).json({ message: error.message || 'Error updating property' });
+        console.error("Property update error:", error);
+        res.status(400).json({ message: error.message || "Error updating property" });
     }
 };
 
-// @route   DELETE /api/properties/:id
-// @desc    Delete property
-// @access  Private (owner of property)
-exports.deleteProperty = async (req, res) => {
+/**
+ * @route   DELETE /api/properties/:id
+ * @desc    Delete property
+ * @access  Private (owner of property)
+ */
+export const deleteProperty = async (req, res) => {
     try {
         const property = await Property.findById(req.params.id);
 
         if (!property) {
-            return res.status(404).json({ message: 'Property not found' });
+            return res.status(404).json({ message: "Property not found" });
         }
 
         // Check authorization
-        if (property.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Not authorized to delete this property' });
+        if (property.owner.toString() !== req.user.id && req.user.role !== "admin") {
+            return res.status(403).json({ message: "Not authorized to delete this property" });
         }
 
-        // Delete images
+        // Delete images from Cloudinary
         if (property.images && property.images.length > 0) {
-            property.images.forEach((image) => {
-                const imagePath = path.join(__dirname, '..', image.url);
-                fs.unlink(imagePath, (err) => {
-                    if (err) console.log(err);
-                });
-            });
+            for (const image of property.images) {
+                if (image.public_id) {
+                    await cloudinary.uploader.destroy(image.public_id);
+                }
+            }
         }
 
-        // Delete related favorites
         await Favorite.deleteMany({ property: property._id });
 
         await Property.findByIdAndRemove(req.params.id);
 
         res.status(200).json({
             success: true,
-            message: 'Property deleted successfully',
+            message: "Property deleted successfully",
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// @route   POST /api/properties/:id/inquiry
-// @desc    Send inquiry for a property
-// @access  Private
-exports.sendInquiry = async (req, res) => {
+/**
+ * @route   POST /api/properties/:id/inquiry
+ * @desc    Send inquiry for a property
+ * @access  Private
+ */
+export const sendInquiry = async (req, res) => {
     try {
         const { message } = req.body;
 
@@ -439,12 +420,12 @@ exports.sendInquiry = async (req, res) => {
         );
 
         if (!property) {
-            return res.status(404).json({ message: 'Property not found' });
+            return res.status(404).json({ message: "Property not found" });
         }
 
         res.status(200).json({
             success: true,
-            message: 'Inquiry sent successfully',
+            message: "Inquiry sent successfully",
             data: property,
         });
     } catch (error) {
@@ -452,10 +433,12 @@ exports.sendInquiry = async (req, res) => {
     }
 };
 
-// @route   GET /api/properties/owner/:ownerId
-// @desc    Get all properties by owner
-// @access  Public
-exports.getPropertiesByOwner = async (req, res) => {
+/**
+ * @route   GET /api/properties/owner/:ownerId
+ * @desc    Get all properties by owner
+ * @access  Public
+ */
+export const getPropertiesByOwner = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
@@ -463,7 +446,7 @@ exports.getPropertiesByOwner = async (req, res) => {
         const properties = await Property.find({ owner: req.params.ownerId })
             .skip(skip)
             .limit(Number(limit))
-            .populate('owner', 'name email phone');
+            .populate("owner", "name email phone");
 
         const total = await Property.countDocuments({ owner: req.params.ownerId });
 
@@ -480,37 +463,38 @@ exports.getPropertiesByOwner = async (req, res) => {
     }
 };
 
-// @route   DELETE /api/properties/:id/image
-// @desc    Delete specific image from property
-// @access  Private
-exports.deletePropertyImage = async (req, res) => {
+/**
+ * @route   DELETE /api/properties/:id/image
+ * @desc    Delete specific image from property
+ * @access  Private
+ */
+export const deletePropertyImage = async (req, res) => {
     try {
         const { imageUrl } = req.body;
 
         const property = await Property.findById(req.params.id);
 
         if (!property) {
-            return res.status(404).json({ message: 'Property not found' });
+            return res.status(404).json({ message: "Property not found" });
         }
 
         // Check authorization
-        if (property.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Not authorized to delete this image' });
+        if (property.owner.toString() !== req.user.id && req.user.role !== "admin") {
+            return res.status(403).json({ message: "Not authorized to delete this image" });
         }
 
-        // Delete image file
-        const imagePath = path.join(__dirname, '..', imageUrl);
-        fs.unlink(imagePath, (err) => {
-            if (err) console.log(err);
-        });
+        const image = property.images.find((img) => img.url === imageUrl);
 
-        // Remove image from property
+        if (image && image.public_id) {
+            await cloudinary.uploader.destroy(image.public_id);
+        }
+
         property.images = property.images.filter((img) => img.url !== imageUrl);
         await property.save();
 
         res.status(200).json({
             success: true,
-            message: 'Image deleted successfully',
+            message: "Image deleted successfully",
             data: property,
         });
     } catch (error) {

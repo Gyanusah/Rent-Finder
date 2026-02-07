@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 const FavoriteSchema = new mongoose.Schema(
     {
@@ -23,4 +23,4 @@ const FavoriteSchema = new mongoose.Schema(
 // Create unique index so a user can't like the same property twice
 FavoriteSchema.index({ user: 1, property: 1 }, { unique: true });
 
-module.exports = mongoose.model('Favorite', FavoriteSchema);
+export default mongoose.model('Favorite', FavoriteSchema);

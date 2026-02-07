@@ -1,8 +1,7 @@
-const express = require('express');
+import express from "express";
 const router = express.Router();
-const { register, login, getMe, updateProfile, getUserById, getAllUsers } = require('../controllers/authController');
-// const { auth, authorize } = require('../middleware/auth');
-const { auth, authorize } = require('../middleware/auth');
+import { register, login, getMe, updateProfile, getUserById, getAllUsers } from "../controllers/authController.js";
+import { auth, authorize } from "../middleware/auth.js";
 
 // Debug route to test server
 router.get('/debug', (req, res) => {
@@ -25,4 +24,4 @@ router.put('/update-profile', auth, updateProfile);
 // Admin: list users
 router.get('/users', auth, authorize('admin'), getAllUsers);
 
-module.exports = router;
+export default router;

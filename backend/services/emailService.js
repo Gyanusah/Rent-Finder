@@ -1,11 +1,16 @@
-const nodemailer = require('nodemailer');
-const { sendTestEmailOTP } = require('./simpleEmail');
+import nodemailer from "nodemailer";
+import { sendTestEmailOTP } from "./simpleEmail.js";
 
 // Create a transporter (using Gmail for example)
 let transporter;
 
 // Check if email credentials are available
+console.log('🔍 Email Config Check:');
+console.log('EMAIL_USER:', process.env.EMAIL_USER ? '✅ Set' : '❌ Not set');
+console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '✅ Set' : '❌ Not set');
+
 if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+  console.log('✅ Using Gmail for OTP');
   transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -60,7 +65,7 @@ const sendEmailOTP = async (email, otp) => {
   }
 };
 
-module.exports = {
+export {
   generateOTP,
   sendEmailOTP,
 };

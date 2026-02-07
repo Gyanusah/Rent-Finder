@@ -42,6 +42,7 @@ export const propertyAPI = {
         return axiosInstance.put(`/properties/${id}`, data);
     },
     delete: (id) => axiosInstance.delete(`/properties/${id}`),
+    sendInquiry: (id, data) => axiosInstance.post(`/properties/${id}/inquiry`, data),
 };
 
 export const authAPI = {
@@ -63,6 +64,8 @@ export const authAPI = {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
     },
+
+    getAllUsers: () => axiosInstance.get('/auth/users'),
 };
 
 export const getImageUrl = (imagePath) => {

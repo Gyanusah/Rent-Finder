@@ -1,10 +1,10 @@
-const User = require('../models/User');
-const { generateToken } = require('../middleware/tokenUtils');
+import User from "../models/User.js";
+import { generateToken } from "../middleware/tokenUtils.js";
 
 // @route   POST /api/auth/register
 // @desc    Register user
 // @access  Public
-exports.register = async (req, res) => {
+export const register = async (req, res) => {
     try {
         const { name, email, password, role, phone } = req.body;
 
@@ -59,7 +59,7 @@ exports.register = async (req, res) => {
 // @route   POST /api/auth/login
 // @desc    Login user
 // @access  Public
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
@@ -107,7 +107,7 @@ exports.login = async (req, res) => {
 // @route   GET /api/auth/me
 // @desc    Get current logged in user
 // @access  Private
-exports.getMe = async (req, res) => {
+export const getMe = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
 
@@ -123,7 +123,7 @@ exports.getMe = async (req, res) => {
 // @route   PUT /api/auth/update-profile
 // @desc    Update user profile
 // @access  Private
-exports.updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
     try {
         const { name, phone, bio, address, avatar } = req.body;
 
@@ -151,7 +151,7 @@ exports.updateProfile = async (req, res) => {
 // @route   GET /api/auth/user/:id
 // @desc    Get user by id
 // @access  Public
-exports.getUserById = async (req, res) => {
+export const getUserById = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
 
@@ -171,7 +171,7 @@ exports.getUserById = async (req, res) => {
 // @route   GET /api/auth/users
 // @desc    Get all users (admin)
 // @access  Private (admin)
-exports.getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
     try {
         const users = await User.find().select('-password');
         res.status(200).json({ success: true, data: users });

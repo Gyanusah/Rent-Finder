@@ -1,11 +1,11 @@
-const express = require('express');
+import express from "express";
 const router = express.Router();
-const {
+import {
   sendEmailOTP,
   sendPhoneOTP,
   sendBothOTP,
   verifyOTP,
-} = require('../controllers/otpController');
+} from "../controllers/otpController.js";
 
 // Public routes
 router.post('/send/email', sendEmailOTP);
@@ -13,4 +13,4 @@ router.post('/send/phone', sendPhoneOTP);
 router.post('/send/both', sendBothOTP);
 router.post('/verify', verifyOTP);
 
-module.exports = router;
+export default router;

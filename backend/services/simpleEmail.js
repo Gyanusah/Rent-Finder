@@ -1,5 +1,5 @@
 // Simple email service for development - uses Ethereal email
-const nodemailer = require('nodemailer');
+import nodemailer from "nodemailer";
 
 // Create test account with Ethereal (fake email service for testing)
 const createTestAccount = async () => {
@@ -20,7 +20,7 @@ const sendTestEmailOTP = async (email, otp) => {
   try {
     // Create test account
     const testAccount = await createTestAccount();
-    
+
     if (!testAccount) {
       throw new Error('Failed to create test email account');
     }
@@ -54,7 +54,7 @@ const sendTestEmailOTP = async (email, otp) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    
+
     console.log('\n' + '📧'.repeat(30));
     console.log('📧 EMAIL SENT SUCCESSFULLY! 📧');
     console.log('📧'.repeat(30));
@@ -64,8 +64,8 @@ const sendTestEmailOTP = async (email, otp) => {
     console.log('💡 Click the URL above to see the email');
     console.log('📧'.repeat(30) + '\n');
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       previewUrl: nodemailer.getTestMessageUrl(info),
       otp: otp // Return OTP for development
     };
@@ -75,4 +75,4 @@ const sendTestEmailOTP = async (email, otp) => {
   }
 };
 
-module.exports = { sendTestEmailOTP };
+export { sendTestEmailOTP };

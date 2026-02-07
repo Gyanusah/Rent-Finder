@@ -18,15 +18,6 @@ const sendSMSOTP = async (phone, otp) => {
     console.log('💡 USE THIS CODE TO VERIFY YOUR ACCOUNT');
     console.log('📱'.repeat(20) + '📱\n');
 
-    // In production, you would use something like:
-    // const twilio = require('twilio');
-    // const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-    // await client.messages.create({
-    //   body: `Your Rent Finder verification code is: ${otp}`,
-    //   from: process.env.TWILIO_PHONE_NUMBER,
-    //   to: phone
-    // });
-
     return { success: true };
   } catch (error) {
     console.error('Error sending SMS OTP:', error);
@@ -34,7 +25,7 @@ const sendSMSOTP = async (phone, otp) => {
   }
 };
 
-module.exports = {
+export {
   generateOTP,
   sendSMSOTP,
 };

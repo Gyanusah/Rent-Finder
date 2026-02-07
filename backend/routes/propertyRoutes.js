@@ -1,6 +1,7 @@
-const express = require('express');
+import express from "express";
 const router = express.Router();
-const {
+
+import {
     createProperty,
     getProperties,
     getPropertyById,
@@ -9,26 +10,32 @@ const {
     sendInquiry,
     getPropertiesByOwner,
     deletePropertyImage,
-} = require('../controllers/propertyController');
-const { auth, authorize } = require('../middleware/auth');
-const upload = require('../middleware/upload');
+    getMyProperties,
+} from "../controllers/propertyController.js";
+
+import { auth, authorize } from "../middleware/auth.js";
+import upload from "../middleware/upload.js";
 
 // Public routes
-router.get('/', getProperties);
-router.get('/:id', getPropertyById);
+router.get("/", getProperties);
+router.get("/:id", getPropertyById);
 
 // Protected route for current user's properties
-const { getMyProperties } = require('../controllers/propertyController');
-router.get('/owner/my-properties', auth, getMyProperties);
+router.get("/owner/my-properties", auth, getMyProperties);
 
 // Public route for properties by specific owner
-router.get('/owner/:ownerId', getPropertiesByOwner);
+router.get("/owner/:ownerId", getPropertiesByOwner);
 
-// Protected routes
-router.post('/', auth, authorize('owner', 'admin'), upload.array('images', 10), createProperty);
-router.put('/:id', auth, upload.array('images', 10), updateProperty);
-router.delete('/:id', auth, deleteProperty);
-router.post('/:id/inquiry', auth, sendInquiry);
-router.delete('/:id/image', auth, deletePropertyImage);
+router.post(
+    "/",
+    auth,
+    upload.array("images", 10),
+    createProperty
+);
 
-module.exports = router;
+router.put("/:id", auth, upload.array("images", 10), updateProperty);
+router.delete("/:id", auth, deleteProperty);
+router.post("/:id/inquiry", auth, sendInquiry);
+router.delete("/:id/image", auth, deletePropertyImage);
+
+export default router;

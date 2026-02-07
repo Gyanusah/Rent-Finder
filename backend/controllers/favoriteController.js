@@ -1,10 +1,10 @@
-const Favorite = require('../models/Favorite');
-const Property = require('../models/Property');
+import Favorite from "../models/Favorite.js";
+import Property from "../models/Property.js";
 
 // @route   POST /api/favorites
 // @desc    Add property to favorites
 // @access  Private
-exports.addFavorite = async (req, res) => {
+export const addFavorite = async (req, res) => {
     try {
         const { propertyId } = req.body;
 
@@ -47,7 +47,7 @@ exports.addFavorite = async (req, res) => {
 // @route   GET /api/favorites
 // @desc    Get all favorite properties for user
 // @access  Private
-exports.getFavorites = async (req, res) => {
+export const getFavorites = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
@@ -79,7 +79,7 @@ exports.getFavorites = async (req, res) => {
 // @route   DELETE /api/favorites/:propertyId
 // @desc    Remove property from favorites
 // @access  Private
-exports.removeFavorite = async (req, res) => {
+export const removeFavorite = async (req, res) => {
     try {
         const favorite = await Favorite.findOneAndRemove({
             user: req.user.id,
@@ -102,7 +102,7 @@ exports.removeFavorite = async (req, res) => {
 // @route   GET /api/favorites/check/:propertyId
 // @desc    Check if property is favorited by user
 // @access  Private
-exports.checkFavorite = async (req, res) => {
+export const checkFavorite = async (req, res) => {
     try {
         const favorite = await Favorite.findOne({
             user: req.user.id,
