@@ -24,10 +24,10 @@ app.use(express.urlencoded({ limit: '25mb', extended: true }));
 
 app.use(cors({
     origin: [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:5000',
-        'http://127.0.0.1:3000',
+        // 'http://localhost:3000',
+        // 'http://localhost:3001',
+        // 'http://localhost:5000',
+        // 'http://127.0.0.1:3000',
         'https://rent-finder-n4vs.vercel.app/'
     ],
     credentials: true,
