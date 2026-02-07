@@ -14,7 +14,7 @@ export default function Home() {
     const fetchFeaturedProperties = async () => {
       try {
         const response = await propertyAPI.getAll({ limit: 6 });
-        setProperties(response.data.data);
+        setProperties(response?.data?.data || []);
       } catch (error) {
         console.error("Error fetching properties:", error);
       } finally {
