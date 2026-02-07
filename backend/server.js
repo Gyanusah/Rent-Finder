@@ -43,7 +43,7 @@ app.use('/api/favorites', favoriteRoutes);
 app.use('/api/otp', otpRoutes);
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/', (req, res) => {
     res.status(200).json({ message: 'Server is running' });
 });
 
