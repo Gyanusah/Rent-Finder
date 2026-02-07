@@ -17,6 +17,7 @@
   ],
   "author": "",
   "license": "MIT",
+  "type": "module",
   "dependencies": {
     "axios": "^1.13.4",
     "bcryptjs": "^2.4.3",
