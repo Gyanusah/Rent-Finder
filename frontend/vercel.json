@@ -2,19 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "YOUR_DEPLOYED_BACKEND_URL/api/$1",
-      "changeOrigin": true
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html",
-      "has": [
-        {
-          "type": "header",
-          "key": "accept",
-          "value": ".*text/html.*"
-        }
-      ]
+      "destination": "https://rent-finder-five.vercel.app/"
     }
   ],
   "headers": [
