@@ -28,7 +28,7 @@ app.use(cors({
         'http://localhost:3001',
         'http://localhost:5000',
         'http://127.0.0.1:3000',
-        'https://rent-finder-tau.vercel.app'
+        'https://rent-finder-n4vs.vercel.app/'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
