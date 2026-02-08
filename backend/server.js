@@ -42,7 +42,7 @@ app.use(cors({
             'http://localhost:3001',
             'http://localhost:5000',
             'http://127.0.0.1:3000',
-            'https://rent-finder-n4vs.vercel.app'
+            'https://rent-finder-2wxn.vercel.app/'
         ];
 
         // Allow any Vercel preview deployment
@@ -61,6 +61,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
     optionsSuccessStatus: 200
 }));
+
+app.use(cors());
 
 // Routes
 app.use('/api/auth', authRoutes);
