@@ -15,7 +15,7 @@ const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 if (missingEnvVars.length > 0) {
     console.error('❌ Missing required environment variables:', missingEnvVars.join(', '));
     console.error('Auth will fail silently without these. Check Vercel dashboard Environment Variables.');
-    process.exit(1);
+    // process.exit(1);
 }
 
 // Routes
@@ -24,7 +24,18 @@ import propertyRoutes from "./routes/propertyRoutes.js";
 import favoriteRoutes from "./routes/favoriteRoutes.js";
 import otpRoutes from "./routes/otpRoutes.js";
 
-connectDB();  // ✅ IMPORTANT
+//connectDB();  // ✅ IMPORTANT
+
+let isConnected = false;
+
+const connectOnce = async () => {
+    if (isConnected) return;
+    await connectDB();
+    isConnected = true;
+};
+
+await connectOnce();
+
 
 const app = express();
 
@@ -43,8 +54,7 @@ app.use(cors({
             'http://localhost:5000',
             'http://127.0.0.1:3000',
             'https://rent-finder-2wxn.vercel.app',
-            'https://rent-finder-4y2i.vercel.app',
-            'https://rent-finder-n4vs.vercel.app'
+            
         ];
 
         // Allow any Vercel preview deployment (rent-finder-XXXX.vercel.app)
@@ -64,7 +74,10 @@ app.use(cors({
     optionsSuccessStatus: 200
 }));
 
-app.options("*", cors());
+app.options("*", (req, res) => {
+    res.sendStatus(200);
+});
+
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -102,11 +115,11 @@ app.use((err, req, res, next) => {
     });
 });
 
-const PORT = process.env.PORT || 5000;
-// const server =
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-});
+// const PORT = process.env.PORT || 5000;
+// // const server =
+// app.listen(PORT, () => {
+//     console.log(`🚀 Server running on port ${PORT}`);
+// });
 
 
 export default app;
