@@ -9,12 +9,19 @@ export const sendEmailOTP = async (req, res) => {
   try {
     const { email } = req.body;
 
+    console.log('📧 Send Email OTP Request:', { email });
+    console.log('🔍 Environment Check:');
+    console.log('EMAIL_USER:', process.env.EMAIL_USER ? '✅ Set' : '❌ Not set');
+    console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '✅ Set' : '❌ Not set');
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+
     if (!email) {
       return res.status(400).json({ message: 'Email is required' });
     }
 
     // Generate OTP
     const otp = generateOTP();
+    console.log('🔢 Generated OTP:', otp);
 
     // Delete any existing OTP for this email
     await OTPModel.deleteMany({ email, type: 'email' });
@@ -27,12 +34,19 @@ export const sendEmailOTP = async (req, res) => {
     });
 
     await newOTP.save();
+    console.log('💾 OTP saved to database');
 
     // Send OTP via email
+    console.log('📤 Sending email to:', email);
     const emailResult = await sendEmail(email, otp);
+    console.log('📨 Email result:', emailResult);
 
     if (!emailResult.success) {
-      return res.status(500).json({ message: 'Failed to send email OTP' });
+      console.error('❌ Email send failed:', emailResult.error);
+      return res.status(500).json({
+        message: 'Failed to send email OTP',
+        error: emailResult.error
+      });
     }
 
     res.status(200).json({
@@ -40,7 +54,7 @@ export const sendEmailOTP = async (req, res) => {
       message: 'OTP sent to your email',
     });
   } catch (error) {
-    console.error('Error sending email OTP:', error);
+    console.error('❌ Error sending email OTP:', error.message, error.stack);
     res.status(500).json({ message: error.message });
   }
 };
