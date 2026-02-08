@@ -8,6 +8,16 @@ import connectDB from "./config/db.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Validate required environment variables
+const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+    console.error('❌ Missing required environment variables:', missingEnvVars.join(', '));
+    console.error('Auth will fail silently without these. Check Vercel dashboard Environment Variables.');
+    process.exit(1);
+}
+
 // Routes
 import authRoutes from "./routes/authRoutes.js";
 import propertyRoutes from "./routes/propertyRoutes.js";
@@ -23,13 +33,29 @@ app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ limit: '25mb', extended: true }));
 
 app.use(cors({
-    origin: [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:5000',
-        'http://127.0.0.1:3000',
-        'https://rent-finder-n4vs.vercel.app'
-    ],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, curl, etc.)
+        if (!origin) return callback(null, true);
+
+        const allowedOrigins = [
+            'http://localhost:3000',
+            'http://localhost:3001',
+            'http://localhost:5000',
+            'http://127.0.0.1:3000',
+            'https://rent-finder-n4vs.vercel.app'
+        ];
+
+        // Allow any Vercel preview deployment
+        const isVercelPreview = origin.match(/https:\/\/.*-vercel\.app$/);
+        const isAllowed = allowedOrigins.includes(origin) || isVercelPreview;
+
+        if (isAllowed) {
+            callback(null, true);
+        } else {
+            console.warn(`CORS blocked origin: ${origin}`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

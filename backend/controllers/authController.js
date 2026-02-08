@@ -52,6 +52,7 @@ export const register = async (req, res) => {
             },
         });
     } catch (error) {
+        console.error('Register Error:', error.message, error.stack);
         res.status(400).json({ message: error.message });
     }
 };
@@ -100,6 +101,7 @@ export const login = async (req, res) => {
             },
         });
     } catch (error) {
+        console.error('Login Error:', error.message, error.stack);
         res.status(500).json({ message: error.message });
     }
 };
