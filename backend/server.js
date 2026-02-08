@@ -62,7 +62,7 @@ app.use(cors({
     optionsSuccessStatus: 200
 }));
 
-app.use(cors());
+app.options("*", cors());
 
 // Routes
 app.use('/api/auth', authRoutes);
