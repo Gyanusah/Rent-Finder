@@ -42,12 +42,14 @@ app.use(cors({
             'http://localhost:3001',
             'http://localhost:5000',
             'http://127.0.0.1:3000',
-            'https://rent-finder-2wxn.vercel.app/'
+            'https://rent-finder-2wxn.vercel.app',
+            'https://rent-finder-4y2i.vercel.app',
+            'https://rent-finder-n4vs.vercel.app'
         ];
 
-        // Allow any Vercel preview deployment
-        const isVercelPreview = origin.match(/https:\/\/.*-vercel\.app$/);
-        const isAllowed = allowedOrigins.includes(origin) || isVercelPreview;
+        // Allow any Vercel preview deployment (rent-finder-XXXX.vercel.app)
+        const isVercelPreview = origin.match(/https:\/\/rent-finder-[a-z0-9]+\.vercel\.app$/);
+        const isAllowed = allowedOrigins.includes(origin.replace(/\/$/, '')) || isVercelPreview;
 
         if (isAllowed) {
             callback(null, true);
