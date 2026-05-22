@@ -66,11 +66,11 @@ export const login = async (req, res) => {
 
         // Validate & sanitize
         if (!email || !email.trim()) {
-            return res.status(400).json({ message: 'Please provide a valid email' });
+            return res.status(400).json({ message: 'Please provide a valid email and password' });
         }
 
         if (!password || !password.trim()) {
-            return res.status(400).json({ message: 'Please provide a password' });
+            return res.status(400).json({ message: 'Please provide a  email and password' });
         }
 
         // Check for user
@@ -84,7 +84,7 @@ export const login = async (req, res) => {
         const isMatch = await user.matchPassword(password);
 
         if (!isMatch) {
-            return res.status(401).json({ message: 'Incorrect password. Please try again.' });
+            return res.status(401).json({ message: 'Incorrect email and password. Please try again.' });
         }
 
         const token = generateToken(user);
@@ -127,17 +127,33 @@ export const getMe = async (req, res) => {
 // @access  Private
 export const updateProfile = async (req, res) => {
     try {
-        const { name, phone, bio, address, avatar } = req.body;
+        const {
+            name,
+            phone,
+            bio,
+            address,
+            avatar,
+            privacySettings,
+            notificationSettings,
+        } = req.body;
+
+        const updateData = {};
+        if (name) updateData.name = name;
+        if (phone) updateData.phone = phone;
+        if (bio) updateData.bio = bio;
+        if (address) updateData.address = address;
+        if (privacySettings) updateData.privacySettings = privacySettings;
+        if (notificationSettings) updateData.notificationSettings = notificationSettings;
+
+        if (req.file?.secure_url || req.file?.url || req.file?.path) {
+            updateData.avatar = req.file.secure_url || req.file.url || req.file.path;
+        } else if (avatar) {
+            updateData.avatar = avatar;
+        }
 
         const user = await User.findByIdAndUpdate(
             req.user.id,
-            {
-                name,
-                phone,
-                bio,
-                address,
-                avatar,
-            },
+            updateData,
             { new: true, runValidators: true }
         );
 
@@ -146,6 +162,44 @@ export const updateProfile = async (req, res) => {
             data: user,
         });
     } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @route   PUT /api/auth/change-password
+// @desc    Change user password
+// @access  Private
+export const changePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword, confirmPassword } = req.body;
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({ message: 'Current password, new password, and confirmation are required.' });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ message: 'New password and confirmation must match.' });
+        }
+
+        const user = await User.findById(req.user.id).select('+password');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const isMatch = await user.matchPassword(currentPassword);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Current password is incorrect.' });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Password changed successfully.',
+        });
+    } catch (error) {
+        console.error('Change Password Error:', error.message);
         res.status(500).json({ message: error.message });
     }
 };

@@ -37,7 +37,6 @@ export const AuthProvider = ({ children }) => {
       return {
         success: false,
         message: error.response?.data?.message || "Login failed",
-        
       };
     }
   };
@@ -47,7 +46,7 @@ export const AuthProvider = ({ children }) => {
     email,
     password,
     role = "tenant",
-    phone = ""
+    phone = "",
   ) => {
     try {
       const response = await authAPI.register({
@@ -98,6 +97,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const changePassword = async (
+    currentPassword,
+    newPassword,
+    confirmPassword,
+  ) => {
+    try {
+      const response = await authAPI.changePassword({
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "Password change failed",
+      };
+    }
+  };
+
   const value = {
     user,
     token,
@@ -106,6 +126,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateProfile,
+    changePassword,
     isAuthenticated: !!user,
     isOwner: user?.role === "owner",
     isAdmin: user?.role === "admin",

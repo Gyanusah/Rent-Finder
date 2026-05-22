@@ -148,6 +148,15 @@ const PropertySchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
         },
+        approved: {
+            type: Boolean,
+            default: false,
+        },
+        approvedAt: Date,
+        approvedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        },
     },
     { timestamps: true }
 );

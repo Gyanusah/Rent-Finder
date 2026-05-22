@@ -1,6 +1,7 @@
 import express from "express";
 const router = express.Router();
-import { register, login, getMe, updateProfile, getUserById, getAllUsers } from "../controllers/authController.js";
+import upload from "../middleware/upload.js";
+import { register, login, getMe, updateProfile, changePassword, getUserById, getAllUsers } from "../controllers/authController.js";
 import { auth, authorize } from "../middleware/auth.js";
 
 // Debug route to test server
@@ -19,7 +20,8 @@ router.get('/user/:id', getUserById);
 
 // Protected routes
 router.get('/me', auth, getMe);
-router.put('/update-profile', auth, updateProfile);
+router.put('/update-profile', auth, upload.single('avatar'), updateProfile);
+router.put('/change-password', auth, changePassword);
 
 // Admin: list users
 router.get('/users', auth, authorize('admin'), getAllUsers);

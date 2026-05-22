@@ -59,7 +59,7 @@ button {
 }
 
 /* Responsive text sizes */
-h1 {
+/* h1 {
   @apply text-3xl md:text-4xl;
 }
 
@@ -69,4 +69,37 @@ h2 {
 
 h3 {
   @apply text-xl md:text-2xl;
-}
+} */
+
+ @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600&display=swap');
+        .font-playfair { font-family: 'Playfair Display', Georgia, serif; }
+        .font-outfit   { font-family: 'Outfit', sans-serif; }
+        @keyframes heroZoom {
+          from { transform: scale(1.04); }
+          to   { transform: scale(1.10); }
+        }
+        .hero-zoom { animation: heroZoom 14s ease-in-out infinite alternate; }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(28px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up-1 { animation: fadeUp 0.7s 0.05s ease both; }
+        .fade-up-2 { animation: fadeUp 0.7s 0.15s ease both; }
+        .fade-up-3 { animation: fadeUp 0.7s 0.25s ease both; }
+        .fade-up-4 { animation: fadeUp 0.7s 0.35s ease both; }
+        .fade-up-5 { animation: fadeUp 0.7s 0.45s ease both; }
+        @keyframes pulse-dot {
+          0%,100% { opacity:1; transform:scale(1); }
+          50%      { opacity:0.4; transform:scale(1.6); }
+        }
+        .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+        .diagonal-cut {
+          clip-path: polygon(0 55%, 100% 0, 100% 100%, 0 100%);
+        }
+        .bg-text-watermark {
+          font-size: clamp(80px, 18vw, 200px);
+          -webkit-text-stroke: 1px rgba(26,23,20,0.06);
+          color: transparent;
+          user-select: none;
+          pointer-events: none;
+        }

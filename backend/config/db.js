@@ -1,3 +1,6 @@
+
+
+
 import mongoose from "mongoose";
 
 let cached = global.mongoose;
@@ -7,16 +10,16 @@ if (!cached) {
 }
 
 const connectDB = async () => {
-    if (cached.conn) {
-        return cached.conn;
-    }
+    if (cached.conn) return cached.conn;
 
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
         };
         cached.promise = mongoose.connect(process.env.MONGODB_URI, opts).then((mongoose) => {
-            console.log(`MongoDB Connected: ${mongoose.connection.host}`);
+            console.log(`✅ MongoDB Connected: ${mongoose.connection.host}`);
             return mongoose;
         });
     }
@@ -25,6 +28,7 @@ const connectDB = async () => {
         cached.conn = await cached.promise;
     } catch (e) {
         cached.promise = null;
+        console.error("❌ MongoDB connection failed:", e);
         throw e;
     }
 

@@ -6,7 +6,7 @@ import {
   sendBothOTP,
   verifyOTP,
 } from "../controllers/otpController.js";
-import { sendEmailOTP as sendEmail } from "../services/emailService.js";
+import { sendEmailOTP as sendEmail } from "../services/emailServices.js";
 
 // Test route to verify email configuration
 router.get('/test-email', async (req, res) => {

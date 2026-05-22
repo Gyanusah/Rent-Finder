@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { propertyAPI } from "../services/apiService";
@@ -12,7 +14,6 @@ export default function Search() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState({});
 
   const fetchProperties = async (params) => {
     setLoading(true);
@@ -38,6 +39,7 @@ export default function Search() {
 
   const handleSearch = (formData) => {
     const newParams = new URLSearchParams();
+
     if (formData.city) newParams.append("city", formData.city);
     if (formData.area) newParams.append("area", formData.area);
     if (formData.propertyType)
@@ -50,49 +52,70 @@ export default function Search() {
   };
 
   const handleFilter = (filterData) => {
-    setFilters(filterData);
     const params = {
       ...Object.fromEntries(searchParams),
       ...filterData,
       page: 1,
     };
-    if (filterData.furnishing) {
-      params.furnishing = filterData.furnishing;
-    }
-    if (filterData.amenities && filterData.amenities.length > 0) {
-      params.amenities = filterData.amenities;
-    }
+
     fetchProperties(params);
     setPage(1);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Search Bar */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <SearchBar onSearch={handleSearch} />
+      {/* 🔥 HERO SECTION */}
+      <div
+        className="relative text-white py-16 px-4 bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "url('https://images.unsplash.com/photo-1568605114967-8130f3a36994')",
+        }}
+      >
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/60"></div>
+
+        {/* Content */}
+        <div className="relative max-w-7xl mx-auto text-center">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4">
+            Search Properties
+          </h1>
+          <p className="text-gray-200 mb-8">
+            Find the best rooms, flats, and houses
+          </p>
+
+          {/* 💎 Glass Search */}
+          <div className="backdrop-blur-lg bg-white/10 border border-white/20 rounded-2xl shadow-xl p-6 md:p-8 max-w-4xl mx-auto">
+            <SearchBar onSearch={handleSearch} />
+          </div>
+        </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 pb-12">
+      {/* 🔥 MAIN CONTENT */}
+      <div className="max-w-7xl mx-auto px-4 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <FilterSidebar onFilter={handleFilter} />
+            <div className="bg-white rounded-xl shadow p-4 sticky top-4">
+              <FilterSidebar onFilter={handleFilter} />
+            </div>
           </div>
 
-          {/* Properties Grid */}
+          {/* Properties */}
           <div className="lg:col-span-3">
             {loading ? (
               <LoadingSkeletons />
             ) : properties.length > 0 ? (
               <>
+                {/* Result Count */}
                 <div className="mb-4">
                   <p className="text-gray-700">
                     Found <span className="font-bold">{properties.length}</span>{" "}
                     properties
                   </p>
                 </div>
+
+                {/* Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   {properties.map((property) => (
                     <PropertyCard key={property._id} property={property} />
@@ -101,7 +124,7 @@ export default function Search() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex justify-center gap-2 mt-8">
+                  <div className="flex justify-center gap-2 flex-wrap">
                     <button
                       onClick={() => setPage(Math.max(1, page - 1))}
                       disabled={page === 1}
@@ -109,6 +132,7 @@ export default function Search() {
                     >
                       ← Previous
                     </button>
+
                     {[...Array(totalPages)].map((_, i) => (
                       <button
                         key={i + 1}
@@ -122,6 +146,7 @@ export default function Search() {
                         {i + 1}
                       </button>
                     ))}
+
                     <button
                       onClick={() => setPage(Math.min(totalPages, page + 1))}
                       disabled={page === totalPages}
@@ -133,7 +158,7 @@ export default function Search() {
                 )}
               </>
             ) : (
-              <div className="text-center py-12 bg-white rounded-lg">
+              <div className="text-center py-12 bg-white rounded-lg shadow">
                 <p className="text-gray-600 text-xl">No properties found</p>
                 <p className="text-gray-500 mt-2">
                   Try adjusting your search or filters
@@ -146,3 +171,4 @@ export default function Search() {
     </div>
   );
 }
+

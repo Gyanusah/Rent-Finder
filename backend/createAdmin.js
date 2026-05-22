@@ -4,6 +4,10 @@ dotenv.config();
 import connectDB from "./config/db.js";
 import User from "./models/User.js";
 
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv6first');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 // Simple CLI helper to parse --key=value args
 const parseArgs = () => {
     const args = process.argv.slice(2);

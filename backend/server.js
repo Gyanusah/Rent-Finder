@@ -5,15 +5,21 @@ import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv6first');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+
 
 // Validate required environment variables
 const requiredEnvVars = ['MONGODB_URI', 'JWT_SECRET'];
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 
 if (missingEnvVars.length > 0) {
-    console.error('❌ Missing required environment variables:', missingEnvVars.join(', '));
+    console.error(' Missing required environment variables:', missingEnvVars.join(', '));
     console.error('Auth will fail silently without these. Check Vercel dashboard Environment Variables.');
     // process.exit(1);
 }
@@ -37,6 +43,8 @@ const connectOnce = async () => {
 await connectOnce();
 
 
+
+
 const app = express();
 
 // Middleware
@@ -54,7 +62,7 @@ app.use(cors({
             'http://localhost:5000',
             'http://127.0.0.1:3000',
             'https://rent-finder-2wxn.vercel.app',
-            
+
         ];
 
         // Allow any Vercel preview deployment (rent-finder-XXXX.vercel.app)
@@ -115,11 +123,13 @@ app.use((err, req, res, next) => {
     });
 });
 
-// const PORT = process.env.PORT || 5000;
-// // const server =
-// app.listen(PORT, () => {
-//     console.log(`🚀 Server running on port ${PORT}`);
-// });
 
 
-export default app;
+const PORT = process.env.PORT || 5000;
+// const server =
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+});
+
+
+export default app; 

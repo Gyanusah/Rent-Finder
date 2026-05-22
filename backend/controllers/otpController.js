@@ -1,5 +1,5 @@
 import OTPModel from "../models/OTP.js";
-import { generateOTP, sendEmailOTP as sendEmail } from "../services/emailService.js";
+import { generateOTP, sendEmailOTP as sendEmail } from "../services/emailServices.js";
 import { generateOTP as generateSMSOTP, sendSMSOTP } from "../services/smsService.js";
 
 // @route   POST /api/otp/send/email

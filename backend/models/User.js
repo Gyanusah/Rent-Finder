@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 
+const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{12,}$/;
 const UserSchema = new mongoose.Schema(
     {
         name: {
@@ -24,10 +26,26 @@ const UserSchema = new mongoose.Schema(
             required: [true, 'Please provide a password'],
             minlength: 6,
             select: false,
+            validate: {
+                validator: function (value) {
+                    return passwordRegex.test(value);
+                },
+                message: "Password must be at least 12 characters and include uppercase, lowercase, number, and special character"
+            }
         },
         phone: {
             type: String,
             match: [/^\d{10}$/, 'Please provide a valid 10-digit phone number'],
+        },
+        privacySettings: {
+            showEmail: { type: Boolean, default: false },
+            showPhone: { type: Boolean, default: false },
+            profileVisible: { type: Boolean, default: true },
+        },
+        notificationSettings: {
+            email: { type: Boolean, default: true },
+            sms: { type: Boolean, default: false },
+            push: { type: Boolean, default: true },
         },
         role: {
             type: String,

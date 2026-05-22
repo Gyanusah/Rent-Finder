@@ -25,7 +25,12 @@ function AppRoutes() {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-grow">
-        <Routes>
+        <Routes
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/search" element={<Search />} />

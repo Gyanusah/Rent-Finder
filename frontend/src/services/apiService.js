@@ -3,35 +3,41 @@
 
 import axios from 'axios';
 
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL 
-// // || 'http://localhost:5000/api';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://rent-finder-five.vercel.app/api';
+// Use Vite proxy in development and a configured backend URL in production
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const axiosInstance = axios.create({
     baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
 });
+
+const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 // Add token to requests
 axiosInstance.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
+    const authHeaders = getAuthHeaders();
+    config.headers = {
+        ...config.headers,
+        ...authHeaders,
+    };
     return config;
 });
 
 export const propertyAPI = {
     getAll: (params) => axiosInstance.get('/properties', { params }),
+    getAllAdmin: (params) => axiosInstance.get('/properties/admin/properties', { params }),
+    approve: (id) => axiosInstance.put(`/properties/admin/properties/${id}/approve`),
     getById: (id) => axiosInstance.get(`/properties/${id}`),
     getByOwner: () => axiosInstance.get('/properties/owner/my-properties'),
     create: (data) => {
         if (data instanceof FormData) {
             return axiosInstance.post('/properties', data, {
-                headers: { 'Content-Type': 'multipart/form-data' },
+                headers: {
+                    ...getAuthHeaders(),
+                    'Content-Type': undefined,
+                },
             });
         }
         return axiosInstance.post('/properties', data);
@@ -39,7 +45,10 @@ export const propertyAPI = {
     update: (id, data) => {
         if (data instanceof FormData) {
             return axiosInstance.put(`/properties/${id}`, data, {
-                headers: { 'Content-Type': 'multipart/form-data' },
+                headers: {
+                    ...getAuthHeaders(),
+                    'Content-Type': undefined,
+                },
             });
         }
         return axiosInstance.put(`/properties/${id}`, data);
@@ -67,6 +76,19 @@ export const authAPI = {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
     },
+
+    updateProfile: (data) => {
+        if (data instanceof FormData) {
+            return axiosInstance.put('/auth/update-profile', data, {
+                headers: {
+                    ...getAuthHeaders(),
+                    'Content-Type': undefined,
+                },
+            });
+        }
+        return axiosInstance.put('/auth/update-profile', data);
+    },
+    changePassword: (data) => axiosInstance.put('/auth/change-password', data),
 
     getAllUsers: () => axiosInstance.get('/auth/users'),
 };

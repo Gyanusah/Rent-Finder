@@ -1,3 +1,5 @@
+
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -10,7 +12,7 @@ export default function PropertyCard({ property, onFavoriteChange }) {
 
   const handleFavorite = async (e) => {
     e.preventDefault();
-    // e.stopPropagation();// this will be changed
+
     if (!user) {
       alert("Please login to add favorites");
       return;
@@ -38,108 +40,102 @@ export default function PropertyCard({ property, onFavoriteChange }) {
 
   return (
     <Link to={`/property/${property._id}`}>
-      <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden h-full">
-        {/* Image Section */}
-        <div className="relative h-48 md:h-56 overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300">
+      <div className="group relative bg-white/70 backdrop-blur-xl border border-white/40 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
+        {/* IMAGE SECTION */}
+        <div className="relative h-52 overflow-hidden">
           <img
             src={primaryImage}
             alt={property.title}
-            className="w-full h-full object-cover hover:scale-110 transition duration-300"
+            className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
             onError={(e) => {
               e.target.src = "/placeholder.svg";
             }}
           />
 
-          {/* Image Count Badge */}
-          {imageCount > 0 && (
-            <div className="absolute bottom-3 left-3 bg-black bg-opacity-60 text-white px-3 py-1 rounded-full text-sm font-semibold">
-              📷 {imageCount} photo{imageCount > 1 ? "s" : ""}
-            </div>
-          )}
-
-          {/* Favorite Button */}
-          <div className="absolute top-3 right-3 flex items-center space-x-2">
-            <button
-              onClick={handleFavorite}
-              disabled={loading}
-              className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition"
-            >
-              {isFavorite ? "❤️" : "🤍"}
-            </button>
-          </div>
+          {/* Dark gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
 
           {/* Badge */}
           <div className="absolute top-3 left-3">
-            <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
-              {property.propertyType.replace("_", " ").toUpperCase()}
+            <span className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+              {property.propertyType?.replace("_", " ").toUpperCase()}
             </span>
           </div>
+
+          {/* Favorite */}
+          <button
+            onClick={handleFavorite}
+            disabled={loading}
+            className="absolute top-3 right-3 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-md hover:scale-110 transition"
+          >
+            {isFavorite ? "❤️" : "🤍"}
+          </button>
+
+          {/* Image count */}
+          {imageCount > 0 && (
+            <div className="absolute bottom-3 left-3 bg-black/60 text-white px-3 py-1 rounded-full text-xs">
+              📷 {imageCount}
+            </div>
+          )}
         </div>
 
-        {/* Content Section */}
-        <div className="p-4">
-          {/* Title */}
-          <h3 className="text-lg md:text-xl font-bold text-gray-800 line-clamp-2 mb-2">
+        {/* CONTENT */}
+        <div className="p-5 space-y-3">
+          {/* TITLE */}
+          <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
             {property.title}
           </h3>
 
-          {/* Location */}
-          <p className="text-sm text-gray-600 mb-3">
+          {/* LOCATION */}
+          <p className="text-sm text-gray-600">
             📍 {property.area}, {property.city}
           </p>
 
-          {/* Details Grid */}
-          <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
-            <div className="text-gray-700">
-              <span className="font-semibold">Rent:</span> ₹{property.rent}
+          {/* PRICE CARD */}
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="bg-gray-50 rounded-xl p-2">
+              <p className="text-gray-500 text-xs">Rent</p>
+              <p className="font-bold text-gray-900">₹{property.rent}</p>
             </div>
-            <div className="text-gray-700">
-              <span className="font-semibold">Deposit:</span> ₹
-              {property.deposit}
+
+            <div className="bg-gray-50 rounded-xl p-2">
+              <p className="text-gray-500 text-xs">Deposit</p>
+              <p className="font-bold text-gray-900">₹{property.deposit}</p>
             </div>
-            {property.roomCount && (
-              <div className="text-gray-700">
-                <span className="font-semibold">Rooms:</span>{" "}
-                {property.roomCount}
-              </div>
-            )}
-            {property.roomType && (
-              <div className="text-gray-700">
-                <span className="font-semibold">Type:</span> {property.roomType}
-              </div>
-            )}
           </div>
 
-          {/* Amenities Icons */}
-          <div className="flex flex-wrap gap-2 mb-4">
+          {/* TAGS */}
+          <div className="flex flex-wrap gap-2">
             {property.amenities?.wifi && (
-              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+              <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
                 📶 WiFi
               </span>
             )}
             {property.amenities?.ac && (
-              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+              <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
                 ❄️ AC
               </span>
             )}
             {property.amenities?.parking && (
-              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+              <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-full">
                 🚗 Parking
               </span>
             )}
           </div>
 
-          {/* Owner Info */}
+          {/* OWNER */}
           {property.owner && (
-            <div className="text-sm text-gray-600 pb-3 border-t pt-3">
-              <p className="font-semibold">{property.owner.name}</p>
+            <div className="pt-3 border-t border-gray-200 text-sm text-gray-600">
+              <p className="font-semibold text-gray-800">
+                {property.owner.name}
+              </p>
               <p>📞 {property.owner.phone || "N/A"}</p>
             </div>
           )}
 
-          {/* View Details Button */}
-          <button className="w-full bg-primary text-white py-2 rounded-md hover:bg-blue-700 transition font-semibold">
-            View Details
+          {/* BUTTON */}
+          <button className="w-full mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-2.5 rounded-xl font-semibold hover:opacity-90 transition">
+            View Details →
           </button>
         </div>
       </div>

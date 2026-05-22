@@ -1,31 +1,28 @@
-// For SMS service, we'll use a mock implementation
-// In production, you'd integrate with services like Twilio, AWS SNS, etc.
+// Mock SMS service for development
+// Replace with actual Twilio integration when ready
 
-const generateOTP = () => {
+// Generate OTP
+export const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// Mock SMS service - in production, replace with actual SMS provider
-const sendSMSOTP = async (phone, otp) => {
+// Send OTP via SMS (Mock implementation)
+export const sendSMSOTP = async (phone, otp) => {
   try {
-    // For demo purposes, we'll just log the OTP
-    console.log('\n' + '📱'.repeat(20) + '📱');
-    console.log('📱 SMS OTP CODE GENERATED 📱');
-    console.log('📱'.repeat(20) + '📱');
-    console.log('📞 Phone:', phone);
-    console.log('🔢 OTP CODE:', otp);
-    console.log('⏰ TIME:', new Date().toLocaleTimeString());
-    console.log('💡 USE THIS CODE TO VERIFY YOUR ACCOUNT');
-    console.log('📱'.repeat(20) + '📱\n');
+    console.log(`📱 Mock SMS to ${phone}: Your verification code is ${otp}`);
 
-    return { success: true };
+    // Simulate SMS sending delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    console.log('✅ Mock SMS sent successfully');
+    return { success: true, messageId: 'mock-sms-id-' + Date.now() };
   } catch (error) {
-    console.error('Error sending SMS OTP:', error);
+    console.error('❌ SMS send error:', error.message);
     return { success: false, error: error.message };
   }
 };
 
-export {
+export default {
   generateOTP,
   sendSMSOTP,
 };

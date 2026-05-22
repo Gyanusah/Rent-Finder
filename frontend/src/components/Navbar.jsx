@@ -1,10 +1,29 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { getImageUrl } from "../services/apiService";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const renderAvatar = () => {
+    if (user?.avatar) {
+      return (
+        <img
+          src={getImageUrl(user.avatar)}
+          alt={user.name || "Profile"}
+          className="h-8 w-8 rounded-full object-cover"
+        />
+      );
+    }
+
+    return (
+      <div className="h-8 w-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-semibold uppercase">
+        {user?.name?.charAt(0) || "U"}
+      </div>
+    );
+  };
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -57,9 +76,13 @@ export default function Navbar() {
                   </Link>
                 )}
                 <div className="relative group">
-                  <button className="text-gray-700 hover:text-primary transition">
-                    {user.name}
-                  </button>
+                  <Link
+                    to="/profile"
+                    className="flex items-center gap-2 text-gray-700 hover:text-primary transition"
+                  >
+                    {renderAvatar()}
+                    <span className="hidden sm:inline">{user.name}</span>
+                  </Link>
                   <div className="hidden group-hover:block absolute right-0 bg-white shadow-lg rounded-md mt-2 py-2 w-48">
                     <Link
                       to="/profile"

@@ -1,6 +1,8 @@
 import Property from "../models/Property.js";
 import Favorite from "../models/Favorite.js";
+import User from "../models/User.js";
 import cloudinary from "../config/cloudinary.js";
+import { sendPropertyInquiry } from "../services/emailServices.js";
 
 /**
  * @route   GET /api/properties/owner/my-properties
@@ -70,8 +72,8 @@ export const createProperty = async (req, res) => {
         let images = [];
         if (req.files && req.files.length > 0) {
             images = req.files.map((file) => ({
-                url: file.path,           // Cloudinary URL
-                public_id: file.filename, // Cloudinary public id
+                url: file.secure_url || file.url || file.path,
+                public_id: file.filename,
                 uploadedAt: new Date(),
             }));
         }
@@ -119,6 +121,9 @@ export const createProperty = async (req, res) => {
             bachelorAllowed: parseBoolean(bachelorAllowed),
             images,
             owner: req.user.id,
+            approved: req.user.role === 'admin',
+            approvedAt: req.user.role === 'admin' ? new Date() : undefined,
+            approvedBy: req.user.role === 'admin' ? req.user.id : undefined,
             availability: {
                 available: true,
                 availableFrom: availableFrom ? new Date(availableFrom) : new Date(),
@@ -164,7 +169,14 @@ export const getProperties = async (req, res) => {
         page = Number(page) || 1;
         limit = Number(limit) || 12;
 
-        let filter = { "availability.available": true };
+        let filter = {
+            approved: true,
+            $or: [
+                { "availability.available": true },
+                { "availability.available": { $exists: false } },
+                { availability: { $exists: false } },
+            ],
+        };
 
         if (city) filter.city = { $regex: city, $options: "i" };
         if (area) filter.area = { $regex: area, $options: "i" };
@@ -203,7 +215,8 @@ export const getProperties = async (req, res) => {
                 .populate("owner", "name email phone")
                 .sort(sort)
                 .skip(skip)
-                .limit(Number(limit));
+                .limit(Number(limit))
+                .lean();
         } catch (err) {
             console.error("Error querying properties:", err);
             const payload = { message: "Database query error while fetching properties", error: err.message };
@@ -248,21 +261,92 @@ export const getProperties = async (req, res) => {
 };
 
 /**
+ * @route   GET /api/properties/admin/all
+ * @desc    Get all properties for admin review
+ * @access  Private (admin)
+ */
+export const getAllAdminProperties = async (req, res) => {
+    try {
+        const { page = 1, limit = 100, sort = "-createdAt" } = req.query;
+        const skip = (page - 1) * limit;
+
+        const [properties, total] = await Promise.all([
+            Property.find({})
+                .populate("owner", "name email phone")
+                .sort(sort)
+                .skip(skip)
+                .limit(Number(limit))
+                .lean(),
+            Property.countDocuments({}),
+        ]);
+
+        res.status(200).json({
+            success: true,
+            count: properties.length,
+            total,
+            pages: Math.ceil(total / limit),
+            currentPage: Number(page),
+            data: properties,
+        });
+    } catch (error) {
+        console.error("Get admin properties error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * @route   PUT /api/properties/:id/approve
+ * @desc    Approve a property so it is listed publicly
+ * @access  Private (admin)
+ */
+export const approveProperty = async (req, res) => {
+    try {
+        const property = await Property.findById(req.params.id);
+
+        if (!property) {
+            return res.status(404).json({ message: "Property not found" });
+        }
+
+        property.approved = true;
+        property.approvedAt = new Date();
+        property.approvedBy = req.user.id;
+
+        if (!property.availability) {
+            property.availability = { available: true };
+        } else if (property.availability.available === undefined) {
+            property.availability.available = true;
+        }
+
+        await property.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Property approved successfully",
+            data: property,
+        });
+    } catch (error) {
+        console.error("Approve property error:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
  * @route   GET /api/properties/:id
  * @desc    Get property by id
  * @access  Public
  */
 export const getPropertyById = async (req, res) => {
     try {
-        const property = await Property.findByIdAndUpdate(
-            req.params.id,
-            { $inc: { views: 1 } },
-            { new: true }
-        ).populate("owner", "name email phone bio address");
+        const property = await Property.findById(req.params.id)
+            .populate("owner", "name email phone bio address")
+            .populate({ path: "inquiries.user", select: "name email" })
+            .lean();
 
-        if (!property) {
+        if (!property || property.approved === false) {
             return res.status(404).json({ message: "Property not found" });
         }
+
+        await Property.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
 
         res.status(200).json({
             success: true,
@@ -309,7 +393,9 @@ export const updateProperty = async (req, res) => {
             }
         };
 
-        const updateData = req.body;
+        const updateData = { ...req.body };
+        delete updateData.owner;
+        delete updateData.inquiries;
 
         // Convert numeric fields
         if (updateData.rent) updateData.rent = Number(updateData.rent);
@@ -332,7 +418,7 @@ export const updateProperty = async (req, res) => {
         // Add new images from Cloudinary
         if (req.files && req.files.length > 0) {
             const newImages = req.files.map((file) => ({
-                url: file.path,
+                url: file.secure_url || file.url || file.path,
                 public_id: file.filename,
                 uploadedAt: new Date(),
             }));
@@ -405,22 +491,41 @@ export const sendInquiry = async (req, res) => {
     try {
         const { message } = req.body;
 
-        const property = await Property.findByIdAndUpdate(
-            req.params.id,
-            {
-                $push: {
-                    inquiries: {
-                        user: req.user.id,
-                        message,
-                        createdAt: new Date(),
-                    },
-                },
-            },
-            { new: true }
-        );
+        if (!message || message.trim().length === 0) {
+            return res.status(400).json({ message: "Inquiry message is required" });
+        }
 
+        const property = await Property.findById(req.params.id).populate("owner", "name email notificationSettings");
         if (!property) {
             return res.status(404).json({ message: "Property not found" });
+        }
+
+        if (!Array.isArray(property.inquiries)) {
+            property.inquiries = [];
+        }
+
+        property.inquiries.push({
+            user: req.user.id,
+            message: message.trim(),
+            createdAt: new Date(),
+        });
+
+        await property.save();
+
+        const owner = property.owner;
+        if (owner && owner.email && owner.notificationSettings?.email) {
+            const tenant = await User.findById(req.user.id).select("name email");
+            const tenantName = tenant?.name || "Tenant";
+            const tenantEmail = tenant?.email || "";
+            sendPropertyInquiry(
+                owner.email,
+                property.title,
+                tenantName,
+                tenantEmail,
+                message.trim()
+            ).catch((err) => {
+                console.error("Failed to send inquiry notification email:", err);
+            });
         }
 
         res.status(200).json({
@@ -429,6 +534,7 @@ export const sendInquiry = async (req, res) => {
             data: property,
         });
     } catch (error) {
+        console.error("Inquiry submission error:", error);
         res.status(500).json({ message: error.message });
     }
 };

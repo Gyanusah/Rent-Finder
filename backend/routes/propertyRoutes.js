@@ -5,6 +5,8 @@ import {
     createProperty,
     getProperties,
     getPropertyById,
+    getAllAdminProperties,
+    approveProperty,
     updateProperty,
     deleteProperty,
     sendInquiry,
@@ -18,13 +20,21 @@ import upload from "../middleware/upload.js";
 
 // Public routes
 router.get("/", getProperties);
-router.get("/:id", getPropertyById);
+
+// Admin-only routes
+router.get("/admin/properties", auth, authorize("admin"), getAllAdminProperties);
+router.put("/admin/properties/:id/approve", auth, authorize("admin"), approveProperty);
+router.put("/:id/approve", auth, authorize("admin"), approveProperty); // alternate approve path
+router.get("/admin/all", auth, authorize("admin"), getAllAdminProperties); // legacy alias
 
 // Protected route for current user's properties
 router.get("/owner/my-properties", auth, getMyProperties);
 
 // Public route for properties by specific owner
 router.get("/owner/:ownerId", getPropertiesByOwner);
+
+// Public property detail by id
+router.get("/:id", getPropertyById);
 
 router.post(
     "/",

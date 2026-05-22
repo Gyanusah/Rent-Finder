@@ -1,5 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import FacebookIcon from "@mui/icons-material/Facebook";
+import InstagramIcon from "@mui/icons-material/Instagram";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -77,26 +79,26 @@ export default function Footer() {
           </div>
 
           {/* Social */}
-          <div>
+          <div >
             <h4 className="text-lg font-semibold mb-4">Follow Us</h4>
             <div className="flex space-x-4">
               <a
                 href="#"
-                className="text-gray-400 hover:text-white transition text-xl"
+                className="text-blue-400 hover:text-white transition text-2xl"
               >
-                f
+                <FacebookIcon />
               </a>
               <a
                 href="#"
-                className="text-gray-400 hover:text-white transition text-xl"
+                className="text-blue-400 hover:text-white transition text-2xl"
               >
-                t
+                <InstagramIcon/>
               </a>
               <a
                 href="#"
-                className="text-gray-400 hover:text-white transition text-xl"
+                className="text-blue-400 hover:text-white transition text-2xl"
               >
-                in
+                <InstagramIcon/>
               </a>
             </div>
           </div>
