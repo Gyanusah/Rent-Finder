@@ -3,4 +3,6 @@ node_modules
 uploads/
 .DS_Store
 *.log
-.env
+*.env
+*env
+.env.example
